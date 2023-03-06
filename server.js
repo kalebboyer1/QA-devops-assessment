@@ -1,11 +1,33 @@
 const express = require('express')
 const app = express()
+const path = require('path')
 const {bots, playerRecord} = require('./data')
 const {shuffleArray} = require('./utils')
-const path = require('path')
+var Rollbar = require('rollbar')
+var rollbar = new Rollbar({
+  accessToken: '810d374ddfb042fe9a34b71024a6b5c3',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+})
+
 
 app.use(express.json())
 // app.use(express.static('/public'))
+
+rollbar.log('hello world')
+
+app.get('/', (req, res) => {
+    rollbar.log('game visited')
+    res.sendFile(path.join(__dirname, '/public/index.html'))
+})
+
+app.get('/api/draw', (req, res) => {
+    res.status(200).send(draw)
+    rollbar.info('bot list is sent')
+})
+
+
+
 
 
 app.get('/', (req,res) => {
@@ -26,6 +48,7 @@ app.get('/api/robots', (req, res) => {
     } catch (error) {
         console.log('ERROR GETTING BOTS', error)
         res.sendStatus(400)
+        rollbar.error('couldnt get robots')
     }
 })
 
@@ -38,6 +61,7 @@ app.get('/api/robots/five', (req, res) => {
     } catch (error) {
         console.log('ERROR GETTING FIVE BOTS', error)
         res.sendStatus(400)
+        rollbar.error('couldnt get five robots')
     }
 })
 
@@ -62,9 +86,11 @@ app.post('/api/duel', (req, res) => {
         if (compHealthAfterAttack > playerHealthAfterAttack) {
             playerRecord.losses++
             res.status(200).send('You lost!')
+            rollbar.info('your robots lost')
         } else {
             playerRecord.losses++
             res.status(200).send('You won!')
+            rollbar.info('your robots won')
         }
     } catch (error) {
         console.log('ERROR DUELING', error)
@@ -78,6 +104,7 @@ app.get('/api/player', (req, res) => {
     } catch (error) {
         console.log('ERROR GETTING PLAYER STATS', error)
         res.sendStatus(400)
+        rollbar.error('couldnt get player stats')
     }
 })
 
